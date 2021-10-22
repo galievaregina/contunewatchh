@@ -33,34 +33,18 @@ class MainActivity : AppCompatActivity() {
         backgroundThread.start()
     }
 
-    override fun onStart() {
-        super.onStart()
-        if (pref.contains(TIME_SCORE)) {
-            //Получаем число из настроек
-            secondsElapsed = pref.getInt(TIME_SCORE, 0);
-        }
-    }
-
-    override fun onStop() {
-        super.onStop()
+    override fun onPause(){
+        pref = getSharedPreferences(APP, MODE_PRIVATE) ?: return
         with(pref.edit()) {
             putInt(TIME_SCORE, secondsElapsed) // передаем ключ и значение,которое хоти записать
             apply() // сохраняем его
         }
-
+        super.onPause()
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.run {
-            putInt(TIME_SCORE, secondsElapsed)
-        }
-    }
-
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        super.onRestoreInstanceState(savedInstanceState)
-        savedInstanceState.run {
-            secondsElapsed = getInt(TIME_SCORE)
-        }
+    override fun onResume() {
+        pref = getSharedPreferences(APP, MODE_PRIVATE) ?: return
+        secondsElapsed = pref.getInt(TIME_SCORE, 0);
+        super.onResume()
     }
 }
