@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity() {
     override fun onPause(){
         pref = getSharedPreferences(APP, MODE_PRIVATE) ?: return
         with(pref.edit()) {
-            putInt(TIME_SCORE, secondsElapsed) // передаем ключ и значение,которое хоти записать
+            putInt(TIME_SCORE, secondsElapsed) // передаем ключ и значение,которое хотим записать
             apply() // сохраняем его
         }
         super.onPause()
