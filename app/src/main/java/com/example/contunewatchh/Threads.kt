@@ -36,7 +36,7 @@ class Threads : AppCompatActivity() {
 
     override fun onStart() {
         secondsElapsed = sharedPreferences.getInt(TIME_SCORE, secondsElapsed)
-        val backgroundThread = Thread {
+        thread = Thread {
             Thread.currentThread().name = "Thread" + Thread.currentThread().id
             Log.d(TAG, "Created thread "+ Thread.currentThread().name)
             while (!Thread.currentThread().isInterrupted) {
@@ -51,7 +51,6 @@ class Threads : AppCompatActivity() {
                 }
             }
         }
-        thread = backgroundThread
         thread.start()
         Log.d(TAG,"Activity started")
         super.onStart()

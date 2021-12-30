@@ -11,7 +11,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Contunewatchh">
         <activity
-            android:name=".Coroutines"
+            android:name=".Threads"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
