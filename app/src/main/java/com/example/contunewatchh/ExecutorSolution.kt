@@ -9,25 +9,31 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.Future
 
 
 class ExecutorSolution : AppCompatActivity() {
-    var secondsElapsed: Int = 0
-    lateinit var textSecondsElapsed: TextView
+    private var secondsElapsed: Int = 0
+    private lateinit var textSecondsElapsed: TextView
     private val TIME_SCORE = "time"
-    lateinit var sharedPreferences: SharedPreferences
-    private val DELAY: Long = 1000
-    private lateinit var handler: Handler
-    val TAG = "state"
-    private lateinit var service: ExecutorService
+    private lateinit var sharedPreferences: SharedPreferences
+    private val TAG = "state"
+    private val service = MyApplication().executor
+    private lateinit var future:Future<*>
 
-    private val backgroundThread: Runnable = object : Runnable {
-        override fun run() {
-            if (!service.isShutdown) {
+
+    private val backgroundThread = Runnable {
+        Thread.currentThread().name = "Thread" + Thread.currentThread().id
+        Log.d(TAG, "Created thread "+ Thread.currentThread().name)
+        while (!Thread.currentThread().isInterrupted) {
+            try {
+                Thread.sleep(1000)
                 textSecondsElapsed.post {
                     textSecondsElapsed.text = getString(R.string.text, secondsElapsed++)
                 }
-                handler.postDelayed(this, DELAY)
+            } catch (e: InterruptedException) {
+                Thread.currentThread().interrupt()
+                Log.d(TAG, "Interrupted thread")
             }
         }
     }
@@ -37,7 +43,6 @@ class ExecutorSolution : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         sharedPreferences = getSharedPreferences(TIME_SCORE, MODE_PRIVATE)
         textSecondsElapsed = findViewById(R.id.textSecondsElapsed)
-        handler = Handler(Looper.getMainLooper())
     }
 
     override fun onStop() {
@@ -45,16 +50,16 @@ class ExecutorSolution : AppCompatActivity() {
             putInt(TIME_SCORE, secondsElapsed) // передаем ключ и значение,которое хоти записать
             apply() // сохраняем его
         }
-        service.shutdown()
-        Log.d(TAG, "Thread stopped")
+        future.cancel(true)
+        Log.d(TAG, "Activity stopped")
         super.onStop()
+
     }
 
     override fun onStart() {
         secondsElapsed = sharedPreferences.getInt(TIME_SCORE, secondsElapsed)
-        service = MyApplication().executor
-        service.execute(backgroundThread)
-        Log.d(TAG, "Thread started")
+        future = service.submit(backgroundThread)
+        Log.d(TAG,"Activity started")
         super.onStart()
     }
 

@@ -10,29 +10,18 @@ import android.util.Log
 
 class Threads : AppCompatActivity() {
     var secondsElapsed: Int = 0
-    lateinit var textSecondsElapsed: TextView
+    private lateinit var textSecondsElapsed: TextView
     private val TIME_SCORE = "time"
-    lateinit var sharedPreferences: SharedPreferences
-    private val DELAY: Long = 1000
-    private lateinit var handler:Handler
-    val TAG = "state"
-
-
-    private val backgroundThread: Runnable = object:Runnable{
-        override fun run() {
-            textSecondsElapsed.post{
-                textSecondsElapsed.text = getString(R.string.text, secondsElapsed++)
-            }
-            handler.postDelayed(this, DELAY)
-        }
-    }
+    private lateinit var sharedPreferences: SharedPreferences
+    private val TAG = "state"
+    private lateinit var thread: Thread
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         sharedPreferences = getSharedPreferences(TIME_SCORE, MODE_PRIVATE)
         textSecondsElapsed = findViewById(R.id.textSecondsElapsed)
-        handler = Handler(Looper.getMainLooper())
+        Log.d(TAG,"Activity created")
     }
 
     override fun onStop() {
@@ -40,15 +29,31 @@ class Threads : AppCompatActivity() {
             putInt(TIME_SCORE, secondsElapsed) // передаем ключ и значение,которое хоти записать
             apply() // сохраняем его
         }
-        handler.removeCallbacks(backgroundThread)
-        Log.d(TAG,"Thread stopped")
+        thread.interrupt()
+        Log.d(TAG,"Activity stopped")
         super.onStop()
     }
 
     override fun onStart() {
         secondsElapsed = sharedPreferences.getInt(TIME_SCORE, secondsElapsed)
-        backgroundThread.run()
-        Log.d(TAG,"Thread started")
+        val backgroundThread = Thread {
+            Thread.currentThread().name = "Thread" + Thread.currentThread().id
+            Log.d(TAG, "Created thread "+ Thread.currentThread().name)
+            while (!Thread.currentThread().isInterrupted) {
+                try {
+                    Thread.sleep(1000)
+                    textSecondsElapsed.post {
+                        textSecondsElapsed.text = getString(R.string.text, secondsElapsed++)
+                    }
+                } catch (e: InterruptedException) {
+                    Thread.currentThread().interrupt()
+                    Log.d(TAG, "Interrupted thread")
+                }
+            }
+        }
+        thread = backgroundThread
+        thread.start()
+        Log.d(TAG,"Activity started")
         super.onStart()
     }
 }
